@@ -26,7 +26,6 @@ def getNodeFeatures(nid, graph):
     return nodeFeats
 
 def getBasicGraph(nodeFile, edgeFile):
-    #Graph = snap.TNEANet.New()
     Graph = DirectedGraph()
     Graph.AddFltAttrE('probability')
     Graph.AddFltAttrN('xLoc')
@@ -82,8 +81,6 @@ def getEdgeAttr(srcId, dstId, Graph):
     return timeFunc(srcId, dstId, Graph)* Graph.GetFltAttrDatE(Graph.GetEI(srcId, dstId), 'probability')
 
 def deepCopyGraph(original):
-    #newGraph = type(original).New()
-    #newGraph = copy.deepcopy(original)
     newGraph = DirectedGraph()
 
     newGraph.AddFltAttrE('probability')
@@ -131,7 +128,7 @@ def addEpochToGraphTemp(epoch, lines):
             newGraph.AddFltAttrDatN(int(nodeid), float(light), 'light')
             newGraph.AddFltAttrDatN(int(nodeid), float(volt), 'voltage')
         except Exception as exc:
-            print exc
+            print 'Exc2', exc
             continue
     epoch = int(epoch)
     graphAtEpochs[epoch] = newGraph
@@ -147,7 +144,9 @@ def addNodeFeatsToGraph(line, graph):
         graph.AddFltAttrDatN(int(nodeid), float(light), 'light')
         graph.AddFltAttrDatN(int(nodeid), float(volt), 'voltage')
     except Exception as exc:
-        print exc
+        print nodeid, int(nodeid)
+        print line
+        print 'Exc1', exc
 
 def getGraphAtEpoch(epoch):
     while epoch not in graphAtEpochs and epoch < 0:
@@ -159,6 +158,8 @@ def getGraphAtEpoch(epoch):
 def createAllGraphs(nodeFile, edgeFile, dataFile):
     if os.path.isfile(dataFile[:-4] + '.pkl'):
         global graphAtEpochs
+        fname = dataFile[:-4] + '.pkl'
+        print fname
         graphAtEpochs = pickle.load(open(dataFile[:-4] + '.pkl', 'rb'))
         if os.path.isfile('../data/probMatrix.pkl'):
             global probMatrix
@@ -176,31 +177,13 @@ def createAllGraphs(nodeFile, edgeFile, dataFile):
                 addEpochToGraph(epoch)
             addNodeFeatsToGraph(line, graphAtEpochs[epoch])
 
-    '''
-    with open(dataFile, 'rb') as f1:
-        oldEpoch = 1
-        lines = []
-        for line in f1:
-            words = line.split()
-            epoch = int(words[2])
-            if epoch == oldEpoch:
-                lines.append(line)
-            else:
-                #print oldEpoch
-                addEpochToGraph(oldEpoch, lines)
-                lines = [line]
-                oldEpoch = epoch
-        if len(lines) > 0:
-            print oldEpoch
-            addEpochToGraph(oldEpoch, lines)
-    '''
     pickle.dump(graphAtEpochs, open(dataFile[:-4] + '.pkl', 'wb'))
 
 
-createAllGraphs('../data/mote_locs.txt', '../data/connectivity.txt', '../data/data_less_epochs.txt')
+#createAllGraphs('../data/mote_locs.txt', '../data/connectivity.txt', '../data/data_less_epochs.txt')
 #allDists = getDnodaOutliers(25)
 
-print graphAtEpochs[0].GetEdges()
+#print graphAtEpochs[0].GetEdges()
 '''
 epochPlot = 25
 nodeFeats_tm1 = [getNodeFeatures(nid, graphAtEpochs[epochPlot-1]) for nid in xrange(1,55)]
